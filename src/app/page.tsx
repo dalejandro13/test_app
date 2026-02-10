@@ -1,92 +1,65 @@
-"use client"
-
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
+import Image from "next/image";
 
 export default function Home() {
-
-  const [nombre, setNombre] = useState("");
-  const [apellido, setApellido] = useState("");
-  const [edad, setEdad] = useState<number | "">("");
-  const [loading, setLoading] = useState(false);
-
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault(); // evita recarga del form
-    setLoading(true);
-
-    try {
-      // alert(`Enviando: ${nombre} ${apellido}, edad ${edad}`);
-      const payload = { nombre, apellido, edad };
-
-      const res = await fetch("http://localhost:3001/data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        // throw new Error(`Error ${res.status}: ${text}`);
-        toast("Falló el envío ❌", {
-          description: `Error ${res.status}: ${text}`,
-        });
-        return;
-      }
-
-      const json = await res.json();
-
-      toast("Enviado al servidor Bun ✅", {
-        description: JSON.stringify(json),
-      });
-
-      // opcional: limpiar form
-      setNombre("");
-      setApellido("");
-      setEdad("");
-    } 
-    catch (err: any) {
-      console.log("FETCH ERROR:", err);
-      toast("ha fallado el envío", {
-        description: String(err?.message ?? err ?? "Error desconocido"),
-      });
-    } 
-    finally {
-      setLoading(false);
-    }
-  }
-
-  function handleClick() {
-    // alert("Botón presionado!");
-    toast("un evento ha sido creado", {
-      description: "Botón presionado",
-      action: {
-        label: "Undo",
-        onClick: () => console.log("Undo"),
-      },
-    })
-  };
-
   return (
-    <main className="min-h-screen flex flex-col gap-8 items-center justify-center bg-black">
-      <form onSubmit={onSubmit} className="flex flex-col gap-6 items-center w-full max-w-md">
-        <div className="gap-4 flex flex-row items-center">
-          <label className="text-xl text-white">Ingresa tu nombre:</label>
-          <input className="pl-2" type="text" placeholder="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required/>
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+        <Image
+          className="dark:invert"
+          src="/next.svg"
+          alt="Next.js logo"
+          width={100}
+          height={20}
+          priority
+        />
+        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
+          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+            To get started, edit the page.tsx file.
+          </h1>
+          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+            Looking for a starting point or more instructions? Head over to{" "}
+            <a
+              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              className="font-medium text-zinc-950 dark:text-zinc-50"
+            >
+              Templates
+            </a>{" "}
+            or the{" "}
+            <a
+              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              className="font-medium text-zinc-950 dark:text-zinc-50"
+            >
+              Learning
+            </a>{" "}
+            center.
+          </p>
         </div>
-
-        <div className="gap-4 flex flex-row items-center">
-          <label className="text-xl text-white">Ingresa tu apellido:</label>
-          <input className="pl-2" type="text" placeholder="apellido" value={apellido} onChange={(e) => setApellido(e.target.value)} required/>
+        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+          <a
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              className="dark:invert"
+              src="/vercel.svg"
+              alt="Vercel logomark"
+              width={16}
+              height={16}
+            />
+            Deploy Now
+          </a>
+          <a
+            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
+            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Documentation
+          </a>
         </div>
-
-        <div className="gap-4 flex flex-row items-center">
-          <label className="text-xl text-white">Ingresa tu edad:</label>
-          <input className="pl-2" type="number" placeholder="edad" min="0" value={edad} onChange={(e) => setEdad(e.target.value === "" ? "" : Number(e.target.value))} required/>
-        </div>
-
-        <Button type="submit" disabled={loading}> {loading ? "Enviando..." : "Enviar"} </Button>
-      </form>
-    </main>
+      </main>
+    </div>
   );
 }
