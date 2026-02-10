@@ -1,7 +1,7 @@
 const corsHeaders: HeadersInit = {
   "Access-Control-Allow-Origin": "http://localhost:3000",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 function convertJsonData(data: unknown, status = 200) {
@@ -20,6 +20,10 @@ const server = Bun.serve({
     },
 
     "/data": async (request: Request) => {
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: corsHeaders });
+      }
+
       if (request.method !== "POST") {
         return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
       }

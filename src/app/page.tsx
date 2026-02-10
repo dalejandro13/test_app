@@ -11,7 +11,7 @@ export default function Home() {
   const [edad, setEdad] = useState<number | "">("");
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault(); // evita recarga del form
     setLoading(true);
 
@@ -23,6 +23,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        // mode: "cors",
       });
 
       if (!res.ok) {
@@ -72,17 +73,17 @@ export default function Home() {
       <form onSubmit={onSubmit} className="flex flex-col gap-6 items-center w-full max-w-md">
         <div className="gap-4 flex flex-row items-center">
           <label className="text-xl text-white">Ingresa tu nombre:</label>
-          <input className="pl-2" type="text" placeholder="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required/>
+          <input className="pl-2 text-white border border-white rounded-md bg-transparent outline-none" type="text" placeholder="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required/>
         </div>
 
         <div className="gap-4 flex flex-row items-center">
           <label className="text-xl text-white">Ingresa tu apellido:</label>
-          <input className="pl-2" type="text" placeholder="apellido" value={apellido} onChange={(e) => setApellido(e.target.value)} required/>
+          <input className="pl-2 text-white border border-white rounded-md bg-transparent outline-none" type="text" placeholder="apellido" value={apellido} onChange={(e) => setApellido(e.target.value)} required/>
         </div>
 
         <div className="gap-4 flex flex-row items-center">
           <label className="text-xl text-white">Ingresa tu edad:</label>
-          <input className="pl-2" type="number" placeholder="edad" min="0" value={edad} onChange={(e) => setEdad(e.target.value === "" ? "" : Number(e.target.value))} required/>
+          <input className="pl-2 text-white border border-white rounded-md bg-transparent outline-none" type="number" placeholder="edad" min="0" value={edad} onChange={(e) => setEdad(e.target.value === "" ? "" : Number(e.target.value))} required/>
         </div>
 
         <Button type="submit" disabled={loading}> {loading ? "Enviando..." : "Enviar"} </Button>
