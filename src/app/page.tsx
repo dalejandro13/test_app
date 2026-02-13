@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation";
 
 export default function Home() {
 
@@ -12,6 +13,8 @@ export default function Home() {
   const [edad, setEdad] = useState<number | "">("");
   const [loading, setLoading] = useState(false);
   const [serverMessage, setServerMessage] = useState<string | null>(null);
+
+  const router = useRouter(); //Inicializa el router
 
   async function onSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault(); // evita recarga del form
@@ -48,10 +51,10 @@ export default function Home() {
       });
 
       // opcional: limpiar form
-      // setNombre("");
-      // setApellido("");
-      // setCorreo("")
-      // setEdad("");
+      setNombre("");
+      setApellido("");
+      setCorreo("")
+      setEdad("");
     } 
     catch (err: any) {
       console.log("FETCH ERROR:", err);
@@ -99,7 +102,10 @@ export default function Home() {
           <input className="pl-2 text-white border border-white rounded-md bg-transparent outline-none" type="number" placeholder="edad" min="0" value={edad} onChange={(e) => setEdad(e.target.value === "" ? "" : Number(e.target.value))} required/>
         </div>
 
-        <Button type="submit" disabled={loading}> {loading ? "Enviando..." : "Enviar"} </Button>
+        <div className="flex flex-row gap-4 items-center">
+          <Button type="submit" disabled={loading}> {loading ? "Enviando..." : "Enviar"} </Button>
+          <Button type="button" onClick={() => router.push("/web/deletePage")}> Siguiente pagina </Button>
+        </div>
       </form>
 
       <label className={`text-xl ${ serverMessage?.includes("Error") ? "text-red-500" : "text-green-500" }`} >

@@ -1,16 +1,28 @@
 import { prisma } from "@/lib/prisma";
-import { userSchema } from "@/lib/validation";
+import { userSchema, validateName } from "@/lib/validation";
 
-const corsHeaders: HeadersInit = {
-  "Access-Control-Allow-Origin": "http://localhost:3000",
-  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+const allowedOrigins = new Set([
+  "http://localhost:3000",
+  "http://192.168.1.7:3000",
+]);
 
-function convertJsonData(data: unknown, status = 200) {
+function corsHeadersFor(request: Request): HeadersInit {
+  const origin = request.headers.get("origin") ?? "";
+  const allowOrigin = allowedOrigins.has(origin) ? origin : "http://localhost:3000";
+
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    // (opcional) ayuda con algunas redes/proxies
+    "Access-Control-Max-Age": "86400",
+  };
+}
+
+function convertJsonData(request: Request, data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeadersFor(request), "Content-Type": "application/json" },
   });
 }
 
@@ -19,38 +31,38 @@ const server = Bun.serve({
   routes: {
     "/test": async (request: Request) => {
       console.log("Hello, World!");
-      return new Response("Hello, World!", { status: 200, headers: corsHeaders });
+      return new Response("Hello, World!", { status: 200, headers: corsHeadersFor(request) });
     },
 
     "/data": async (request: Request) => {
       if (request.method === "OPTIONS") {
-        return new Response(null, { status: 204, headers: corsHeaders });
+        return new Response(null, { status: 204, headers: corsHeadersFor(request) });
       }
 
       if (request.method !== "POST") {
-        return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+        return new Response("Method Not Allowed", { status: 405, headers: corsHeadersFor(request) });
       }
 
       const data = await request.json();
       console.log("Received data:", data);
 
-      return convertJsonData({ status: "success", received: data });
+      return convertJsonData(request, { status: "success", received: data });
     },
 
     "/consult": async (request: Request) => {
       if (request.method !== "GET") {
-        return new Response("Error in consult", { status: 400,headers: corsHeaders });
+        return new Response("Error in consult", { status: 400,headers: corsHeadersFor(request) });
       }
-      return convertJsonData({ response: "this is answer for consult with GET" });
+      return convertJsonData(request, { response: "this is answer for consult with GET" });
     },
 
     "/update": async (request: Request) => {
       if (request.method === "OPTIONS") {
-        return new Response(null, { status: 204, headers: corsHeaders });
+        return new Response(null, { status: 204, headers: corsHeadersFor(request) });
       }
 
       if (request.method !== "POST") {
-        return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+        return new Response("Method Not Allowed", { status: 405, headers: corsHeadersFor(request) });
       }
 
       try{
@@ -71,7 +83,7 @@ const server = Bun.serve({
             }),
             {
               status: 400,
-              headers: corsHeaders,
+              headers: corsHeadersFor(request),
             }
           );
         }
@@ -93,7 +105,7 @@ const server = Bun.serve({
         console.log("edad: ", data.edad);
         console.log(user);
         // return convertJsonData({ status: "success", received: data });
-        return convertJsonData(user);
+        return convertJsonData(request, user);
       }
       catch(error: any) {
         console.error("❌ Error en /update:", error);
@@ -104,11 +116,62 @@ const server = Bun.serve({
           }),
           {
             status: 500,
-            headers: corsHeaders,
+            headers: corsHeadersFor(request),
           }
         );
       }
     },
+
+    "/delete": async (request: Request) => {
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: corsHeadersFor(request) });
+      }
+
+      if (request.method !== "DELETE") {
+        return new Response("Method Not Allowed", { status: 405, headers: corsHeadersFor(request) });
+      }
+
+      const data = await request.json();
+      const parsed = validateName.safeParse(data); //Validación Zod
+
+      if(!parsed.success) {
+        const errors = parsed.error.issues.map((issue) => ({
+          field: String(issue.path?.[0] ?? "unknown"),
+          message: issue.message,
+        }));
+        return convertJsonData(request, { status: "validation_error", errors }, 400);
+      }
+
+      try{
+        console.log("el usuario ha sido borrado");
+        // const deletedUser = await prisma.user.delete({ where: { name: data.nombre }, });
+        // return new Response(
+        //   JSON.stringify({
+        //     status: "deleted",
+        //     deletedCount: deletedUser.count,
+        //   }),
+        //   {
+        //     status: 200,
+        //     headers: { ...corsHeaders, "Content-Type": "application/json" },
+        //   }
+        // );
+        return convertJsonData(request, { response: "El usuario ha sido eliminado", status:"delete"});
+      }
+      catch(error: any){
+        // return new Response(
+        //   JSON.stringify({
+        //     status: "error",
+        //     message: error.message,
+        //   }),
+        //   {
+        //     status: 500,
+        //     headers: { ...corsHeaders, "Content-Type": "application/json" },
+        //   }
+        // );
+        return convertJsonData(request, { response: "Error garrafal" + error.message, status:"error"});
+      }
+    },
+
   },
 });
 
