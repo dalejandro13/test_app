@@ -14,8 +14,7 @@ function corsHeadersFor(request: Request): HeadersInit {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    // (opcional) ayuda con algunas redes/proxies
-    "Access-Control-Max-Age": "86400",
+    "Access-Control-Max-Age": "86400", // (opcional) ayuda con algunas redes/proxies
   };
 }
 
@@ -109,16 +108,7 @@ const server = Bun.serve({
       }
       catch(error: any) {
         console.error("❌ Error en /update:", error);
-        return new Response(
-          JSON.stringify({
-            status: "error",
-            message: error?.message ?? "Unknown error",
-          }),
-          {
-            status: 500,
-            headers: corsHeadersFor(request),
-          }
-        );
+        return convertJsonData(request, error?.message ?? "Unknown error", 500);
       }
     },
 
@@ -139,36 +129,20 @@ const server = Bun.serve({
           field: String(issue.path?.[0] ?? "unknown"),
           message: issue.message,
         }));
-        return convertJsonData(request, { status: "validation_error", errors }, 400);
+        return convertJsonData(request, {errors, status: "validation_error"}, 400);
       }
 
       try{
-        console.log("el usuario ha sido borrado");
-        // const deletedUser = await prisma.user.delete({ where: { name: data.nombre }, });
-        // return new Response(
-        //   JSON.stringify({
-        //     status: "deleted",
-        //     deletedCount: deletedUser.count,
-        //   }),
-        //   {
-        //     status: 200,
-        //     headers: { ...corsHeaders, "Content-Type": "application/json" },
-        //   }
-        // );
-        return convertJsonData(request, { response: "El usuario ha sido eliminado", status:"delete"});
+        console.log("el usuario " + data.nombre + " ha sido borrado");
+        const deleted = await prisma.user.deleteMany({ where: { name: data.nombre }, });
+        if(deleted.count > 0)
+        {
+          return convertJsonData(request, {status: "deleted", deletedCount: deleted.count});
+        }
+        return convertJsonData(request, {status: "Error", response: "The user does not exist"});
       }
       catch(error: any){
-        // return new Response(
-        //   JSON.stringify({
-        //     status: "error",
-        //     message: error.message,
-        //   }),
-        //   {
-        //     status: 500,
-        //     headers: { ...corsHeaders, "Content-Type": "application/json" },
-        //   }
-        // );
-        return convertJsonData(request, { response: "Error garrafal" + error.message, status:"error"});
+        return convertJsonData(request, { response: "Error: " + error.message, status:"error"});
       }
     },
 

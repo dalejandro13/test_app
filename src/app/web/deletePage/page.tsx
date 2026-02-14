@@ -15,35 +15,40 @@ export default function Home() {
         e.preventDefault(); // evita recarga del form
         try {
             const payload = { nombre };
-            console.log("uno");
-            const res = await fetch("http://localhost:3001/deletePage", {
+            const res = await fetch("http://localhost:3001/delete", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
-            console.log("dos");
 
             if (!res.ok) {
-                console.log("tres");
                 const text = await res.text();
-
-                toast("Falló el envío ❌", {
+                toast("Falló el envío", {
                     description: `Error ${res.status}: ${text}`,
                 });
                 return;
             }
-            console.log("cuatro");
 
             const json = await res.json();
             console.log("Datos enviados correctamente ✅\n" + JSON.stringify(json));
-            toast("Enviado al servidor Bun ✅", {
+            toast("Enviado por el servidor Bun", {
                 description: JSON.stringify(json),
             });
         }
         catch(error:any){
-            console.log("FETCH ERROR:", error);
-            toast("ha fallado el envío", {
-                description: String(error?.message ?? error ?? "Error desconocido"),
+            console.error("FETCH ERROR FULL:", error);
+            let message = "Error desconocido";
+            if (error instanceof TypeError) {
+                message = "No se pudo conectar con el servidor. ¿Está corriendo en el puerto 3001?";
+            }
+
+            if (error?.message) {
+                message = error.message;
+            }
+
+            toast.error("Error al enviar la solicitud ❌", {
+                description: message,
+                duration: 6000,
             });
         }
     }
