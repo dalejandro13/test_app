@@ -92,7 +92,7 @@ const server = Bun.serve({
           data: {
             name: data.nombre,
             lastName: data.apellido,
-            age: data.edad,
+            age: Number(data.edad),
             email: data.correo,
           },
         });

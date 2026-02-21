@@ -1,0 +1,14 @@
+services: # despues se pone service, los cuales va a ir los contenedores
+  database:  # nombre del contenedor
+    build: . # contruye la imagen dentro de la ubicacion de este archivo docker-compose.yml
+    ports: # se asignan los puertos
+      - "3000:3000" # de izquierda a derecha, el primer puerto es la maquina anfitriona. El segundo puerto es el contenedor
+      - "3001:3001"
+    links:
+      - interface # se pone el nombre del contenedor a mapear, cual va a utilizar el servicio de database
+  interface: # nombre del contendor
+    image: postgres
+    ports:
+      - "5435:5432" # de izquierda a derecha, el primer puerto es la maquina anfitriona. El segundo puerto es el contenedor
+    environment:
+      - POSTGRES_PASSWORD=1234567890
